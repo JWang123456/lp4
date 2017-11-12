@@ -11,6 +11,7 @@ import cs6301.g00.Graph.Edge;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class LP4 {
     Graph g;
@@ -26,71 +27,94 @@ public class LP4 {
     // Part a. Return number of topological orders of g
     public long countTopologicalOrders() {
     	
-    	List<Vertex> nums = new ArrayList<>();
-    	
+    	HashMap<Integer,Vertex> nums = new HashMap<>();
+    	boolean[] visited = new boolean[g.n];
+    	Integer[] indegree = new Integer[g.n];
+    	List<List<Vertex>> list = new ArrayList<>();
+    	List<Vertex> tempList = new ArrayList<>();
     	for(Vertex s: g) {
-    		
-    		nums.add(s);
-    		
+    		List<Edge> edge = s.revAdj;
+    		indegree[s.getName()] = edge.size();
+    		visited[s.getName()] = false;
+    		nums.put(s.getName(), s);
     	}
     	
-    		   List<List<Vertex>> list = new ArrayList<>();
-    		   // Arrays.sort(nums); // not necessary
-    		   backtrack(list, new ArrayList<>(), nums);
-    		   System.out.println("get here finally");
+    		   backtrack(list, tempList, nums, visited, indegree);
     		   return list.size();
-    		   
     	
     }
     
-    private boolean helper(List<Edge> pointto, Vertex vertextoadd, List<Vertex> tempList) {	
-    	while(pointto != null) {
-	    	for(Edge to: pointto) {
-	    		Vertex v = to.otherEnd(vertextoadd);
-	       	 	if(tempList.contains(v)) {
-		        	return true; // element already exists, skip
-	       	 	}else {
-	       	 		
-	       	 	vertextoadd = v;
-	   	 		pointto = vertextoadd.adj;
-	   	 		return helper(pointto, vertextoadd, tempList);
-	   	 		
-	       	 	}
-	    	}
-    	}
-		return false;
-    }
-
-    private void backtrack(List<List<Vertex>> list, List<Vertex> tempList, List<Vertex> nums){
+   
+    private List<List<Vertex>> backtrack(List<List<Vertex>> list, List<Vertex> tempList, HashMap<Integer, Vertex> nums, boolean[] visited, Integer[] indegree){
     		   if(tempList.size() == nums.size()){
-    		      list.add(new ArrayList<>(tempList));
+    			   List<Vertex> temp = new ArrayList<>(tempList);
+    			   list.add(temp);	   
     		   } else{
-    		      for(int i = 0; i < nums.size(); i++){ 
-    		         if(tempList.contains(nums.get(i))) {
-    		        	 continue; // element already exists, skip
-    		         }
-    		         
-    		         Vertex vertextoadd = nums.get(i);
-    		         List<Edge> pointto = vertextoadd.adj;
-    		         
-    		         if(helper(pointto, vertextoadd, tempList)){
+    			   for(Vertex s: g){     
+    		         if(indegree[s.getName()] == 0 && !visited[s.getName()]){	//indegree 0, unvisited	         
+	    		         tempList.add(s);
+	    		         visited[s.getName()] = true;
+	    		         List<Edge> ei = s.adj;
+	    		         for(Edge ee: ei) {
+	    		        	 Vertex vj = ee.otherEnd(s);
+	    		        	 indegree[vj.getName()]--;
+	    		         }
+	    		         backtrack(list, tempList, nums, visited, indegree);
+	    		         tempList.remove(tempList.size() - 1);
+	    		         visited[s.getName()] = false;
+	    		         List<Edge> e = s.adj;
+	    		         for(Edge ej: e) {
+	    		        	 Vertex vj = ej.otherEnd(s);
+	    		        	 indegree[vj.getName()]++;
+	    		         }
+    		         }else {
     		        	 continue;
     		         }
-    		        		         
-    		         tempList.add(nums.get(i));
-    		         backtrack(list, tempList, nums);
-    		         tempList.remove(tempList.size() - 1);
     		      }
     		   }
-    		} 
-	
+			return list;
+    		}
+    
+//    private boolean helper(List<Edge> pointto, Vertex vertextoadd, List<Vertex> tempList) {	
+//    	while(pointto != null) {
+//	    	for(Edge to: pointto) {
+//	    		Vertex v = to.otherEnd(vertextoadd);
+//	       	 	if(tempList.contains(v)) {
+//		        	return true; // element already exists, skip
+//	       	 	}else {
+//	       	 		
+//	       	 	vertextoadd = v;
+//	   	 		pointto = vertextoadd.adj;
+//	   	 		return helper(pointto, vertextoadd, tempList);
+//	   	 		
+//	       	 	}
+//	    	}
+//    	}
+//		return false;
+//    }
+
 
 
     // Part b. Print all topological orders of g, one per line, and 
     //	return number of topological orders of g
-    public long enumerateTopologicalOrders() {
-    
-    	return 0;
+    public List<List<Vertex>> enumerateTopologicalOrders() { 	
+    	HashMap<Integer,Vertex> nums = new HashMap<>();
+		boolean[] visited = new boolean[g.n];
+		Integer[] indegree = new Integer[g.n];
+		List<List<Vertex>> list = new ArrayList<>();
+		List<Vertex> tempList = new ArrayList<>();
+		for(Vertex s: g) {
+			List<Edge> edge = s.revAdj;
+			indegree[s.getName()] = edge.size();
+			visited[s.getName()] = false;
+			nums.put(s.getName(), s);
+		}
+		
+			   backtrack(list, tempList, nums, visited, indegree);
+			  
+			   return list;
+	
+
     }
 
 
